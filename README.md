@@ -10,9 +10,9 @@ It includes:
 
 ## Project Structure
 
-- `my_family_ontology/`
+- `create_family/`
   contains the Python code used to create the family ontology
-- `ast+clingowl/`
+- `ast_clingowl.py/`
   contains the translator from custom ASP theory atoms to OWL queries, together with example ASP rules
 
 ## Requirements
