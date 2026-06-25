@@ -24,12 +24,12 @@ from clingox.ast import (
 )
 
 onto = Ontology(
-    IRI.create("file://C:/Users/azura/Desktop/owlapy/my_family_ontology/my_family.owl"),
+    IRI.create("my_family.owl"),
     load=True
 )
 
 namespace = "http://example.com/my_family#"
-sync_reasoner = SyncReasoner(ontology=r"C:\Users\azura\Desktop\owlapy\my_family_ontology\my_family.owl", reasoner="Pellet")
+sync_reasoner = SyncReasoner(ontology=r"clingowl\my_family_ontology\my_family.owl", reasoner="Pellet")
 
 loc = Location(
     Position("", 0, 0),
@@ -269,7 +269,7 @@ class MyTranslator:
         else:
             self.program.append(sentence)
 
-with open(r"C:\Users\azura\Desktop\owlapy\ast+clingowl\theory_ex.lp", "r") as f:
+with open(r"theory_ex.lp", "r") as f:
     program = f.read()
 
 t = MyTranslator()
