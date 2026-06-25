@@ -1,0 +1,6 @@
+clingo==5.8.0
+clingox==1.2.1
+jpype1==1.7.0
+owlready2==0.50
+rdflib==7.6.0
+git+https://github.com/dice-group/owlapy@28e23c304220e81d0fd36db2f043c6318f9a0e1b#egg=owlapy
