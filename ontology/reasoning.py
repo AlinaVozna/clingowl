@@ -11,7 +11,7 @@ from owlapy.owl_individual import OWLNamedIndividual
 from owlapy import owl_expression_to_sparql, owl_expression_to_dl, owl_expression_to_manchester
 
 onto = Ontology(
-    IRI.create("file://C:/Users/azura/Desktop/owlapy/my_family.owl"),
+    IRI.create("my_family.owl"),
     load=True
 )
 
@@ -38,8 +38,6 @@ Adult = OWLClass(IRI(namespace, "Adult"))
 # Reasoner 
 #structural_reasoner = StructuralReasoner(onto, property_cache = True, negation_default = True, sub_properties = False)
 sync_reasoner = SyncReasoner(ontology="C:/Users/azura/Desktop/owlapy/my_family.owl", reasoner="Pellet")
-infer_axioms = ["class_assertions", "object_property_assertions", "data_property_assertions", "same_individuals", "different_individuals"]
-sync_reasoner.generate_and_save_inferred_class_assertion_axioms(output="C:/Users/azura/Desktop/owlapy/inferred_axioms.ttl")
 
 
 #Reasoning
