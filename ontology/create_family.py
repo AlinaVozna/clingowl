@@ -12,7 +12,7 @@ from owlapy import owl_expression_to_sparql, owl_expression_to_dl, owl_expressio
 
 
 onto = Ontology(
-    IRI.create("file:///C:/Users/azura/Desktop/owlapy/my_family.owl"),
+    IRI.create("my_family.owl"),
     load=False
 )
 namespace = "http://example.com/my_family#"
@@ -152,7 +152,7 @@ onto.add_axiom(OWLClassAssertionAxiom(John, Male))
 onto.add_axiom(OWLClassAssertionAxiom(John, Child)) 
 onto.add_axiom(OWLClassAssertionAxiom(John, Person))
 
-onto.save("C:\\Users\\azura\\Desktop\\owlapy\\my_family_ontology\\my_family.owl")
+onto.save("my_family.owl")
 
 
 
