@@ -1,5 +1,5 @@
 # clingowl
-# OWLAPY + Clingo/Clingox
+
 
 This project combines OWL reasoning and Answer Set Programming (ASP).
 
