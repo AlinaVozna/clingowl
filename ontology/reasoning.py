@@ -37,7 +37,7 @@ Adult = OWLClass(IRI(namespace, "Adult"))
 
 # Reasoner 
 #structural_reasoner = StructuralReasoner(onto, property_cache = True, negation_default = True, sub_properties = False)
-sync_reasoner = SyncReasoner(ontology="clingowl/my_family.owl", reasoner="Pellet")
+sync_reasoner = SyncReasoner(ontology="clingowl/ontology/my_family.owl", reasoner="Pellet")
 
 
 #Reasoning
