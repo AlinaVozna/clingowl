@@ -29,7 +29,7 @@ onto = Ontology(
 )
 
 namespace = "http://example.com/my_family#"
-sync_reasoner = SyncReasoner(ontology=r"clingowl\my_family_ontology\my_family.owl", reasoner="Pellet")
+sync_reasoner = SyncReasoner(ontology=r"clingowl\ontology\my_family.owl", reasoner="Pellet")
 
 loc = Location(
     Position("", 0, 0),
