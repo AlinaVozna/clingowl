@@ -1,6 +1,5 @@
 # clingowl
 
-# ASP–OWL Integration with OWLAPY, Clingo, and SNOMED
 
 This repository contains the prototype accompanying our paper on the integration of **Answer Set Programming (ASP)** with **OWL reasoning**.
 
