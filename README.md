@@ -55,7 +55,7 @@ First install **OWLAPY**.
 
 ```bash
 pip3 install owlapy
----
+```
 
 ### Option B: install OWLAPY from source
 ```bash
@@ -65,4 +65,9 @@ cd owlapy
 conda create -n temp_owlapy python=3.11 --no-default-packages
 conda activate temp_owlapy
 pip install -e '.[dev]'
----
+```
+### Additional Dependencies
+Inside the environment, install the dependencies required by this repository:
+``` bash
+pip install clingo==5.8.0 clingox==1.2.1 owlready2==0.50 jpype1==1.7.0 rdflib==7.6.0
+``` 
