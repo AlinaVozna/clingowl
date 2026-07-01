@@ -174,14 +174,14 @@ class MyTranslator:
     clingowl_theory = """#theory clingowl {
         formula {
             <: : 0, binary, left;
-            = : 1, binary, left;
-            :: : 1, binary, left;
-            & : 0, binary, left;
-            | : 1, binary, left;
-            ! : 1, binary, left;
-            ? : 1, binary, left;
-            ~ : 2, unary;
-            - : 3, unary
+            =  : 0, binary, left;
+            :: : 0, binary, left;
+            |  : 1, binary, left;
+            &  : 2, binary, left;
+            !  : 3, binary, left;
+            ?  : 3, binary, left;
+            ~  : 4, unary;
+            -  : 4, unary
         };
         term {
         - : 1, unary
