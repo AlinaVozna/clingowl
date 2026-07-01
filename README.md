@@ -1,27 +1,34 @@
 # clingowl
 
+ClingOWL is a prototype system that extends `clingo` with OWL theory atoms, allowing ASP programs to query OWL ontologies through external Description Logic reasoners.
 
-This project combines OWL reasoning and Answer Set Programming (ASP).
+The system is built on top of:
 
-It includes:
-- a small family ontology created in Python with OWLAPY
-- a bridge between OWL and ASP using custom theory atoms
-- example ASP programs evaluated with Clingo and Pellet
+- `clingo`
+- `clingox`
+- `OWLAPY`
+- Pellet
+- RDFLib, only for the SNOMED example
 
-## Project Structure
+---
 
-- `create_family/`
-  contains the Python code used to create the family ontology
-- `ast_clingowl.py/`
-  contains the translator from custom ASP theory atoms to OWL queries, together with example ASP rules
+## 1. Set up the OWLAPY environment
+Before running ClingOWL, install OWLAPY and create the Python environment following the official OWLAPY installation instructions.
 
-## Requirements
-
-- Python 3.x
-- Java installed
-  required to use the Pellet reasoner
-
-Install dependencies with:
+### Option A — Install OWLAPY from PyPI
 
 ```bash
-pip install -r requirements.txt
+pip3 install owlapy
+
+### Option B — Install OWLAPY from source
+```bash
+
+git clone https://github.com/dice-group/owlapy
+cd owlapy
+
+conda create -n temp_owlapy python=3.11 --no-default-packages
+conda activate temp_owlapy
+
+pip install -e '.[dev]'
+
+All ClingOWL files should be executed inside this environment.
