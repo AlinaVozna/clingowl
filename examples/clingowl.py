@@ -1,9 +1,31 @@
+# =============================================================================
+# ClingOWL
+# -----------------------------------------------------------------------------
+# This prototype extends Clingo with OWL theory atoms, enabling Answer Set
+# Programming (ASP) programs to directly query OWL ontologies through external
+# Description Logic reasoners.
+#
+# Main components:
+#   - Clingo AST parser
+#   - Theory atom translator
+#   - OWLAPY interface
+#   - Pellet reasoner
+#
+# Supported theory atoms:
+#
+#   &owl{...}
+#       Boolean ontology entailment checks.
+#
+#   &owlquery{...} = X
+#       Retrieve ontology individuals satisfying a DL expression.
+# =============================================================================
+
 import clingo
 import sys
 from owlapy.class_expression import OWLClass
 from owlapy.iri import IRI
-from owlapy.owl_property import OWLObjectProperty, OWLDataProperty, OWLObjectInverseOf
-from owlapy.class_expression import OWLObjectMinCardinality, OWLObjectIntersectionOf, OWLObjectSomeValuesFrom, OWLObjectUnionOf, OWLObjectComplementOf, OWLNothing, OWLObjectAllValuesFrom, OWLThing, OWLObjectOneOf
+from owlapy.owl_property import OWLObjectProperty, OWLObjectInverseOf
+from owlapy.class_expression import  OWLObjectIntersectionOf, OWLObjectSomeValuesFrom, OWLObjectUnionOf, OWLObjectComplementOf, OWLNothing, OWLObjectAllValuesFrom, OWLThing, OWLObjectOneOf
 from owlapy.owl_ontology import Ontology
 from owlapy.owl_reasoner import  SyncReasoner
 from owlapy.owl_individual import OWLNamedIndividual
@@ -23,6 +45,9 @@ from clingox.ast import (
     theory_parser_from_definition,
 )
 
+# =============================================================================
+# Load ontology and initialize the Description Logic reasoner
+# =============================================================================
 onto = Ontology(
     IRI.create("my_family.owl"),
     load=True
@@ -40,19 +65,26 @@ OWL_QUERY_ATOM = "owlquery"
 OWL_BOOL_ATOM = "owl"
 
 def parse_theory(s: str) -> TheoryParser:
-
     parser = None
-
     def extract(stm):
         nonlocal parser
         if stm.ast_type == ASTType.TheoryDefinition:
             parser = theory_parser_from_definition(stm)
-
     parse_string(s, extract)
     return parser
 
-
 class Context:
+    """
+    Context object passed to Clingo during grounding.
+
+    This class provides all callback functions that are invoked
+    by Clingo whenever an OWL theory atom must be evaluated.
+
+    Main responsibilities:
+        - Convert symbolic expressions into OWLAPY objects.
+        - Query the Description Logic reasoner.
+        - Return Boolean values or ontology individuals to Clingo.
+    """
     def bool_symbol(self, value):
         return clingo.Number(1 if value else 0)
    
@@ -73,7 +105,6 @@ class Context:
     def range(self,a,b):
         if a.type!=clingo.SymbolType.Number or b.type!=clingo.SymbolType.Number:
             return []
-     
         l=[]
         for x in range(a.number, b.number):
             l.append(clingo.Number(x))
@@ -91,6 +122,19 @@ class Context:
 
      
     def owlclass(self, expr): 
+        """
+        Recursively converts an internal symbolic expression into
+        the corresponding OWLAPY class expression.
+
+        Supported constructors:
+            intersection
+            union
+            negation
+            existential restriction
+            universal restriction
+            nominals
+            Thing / Nothing
+        """
         if expr.name == "":
             return OWLObjectOneOf([self.owlindividual(arg) for arg in expr.arguments])
         
@@ -104,8 +148,6 @@ class Context:
             class_name = self.upper_first(expr.name)
             return OWLClass(IRI(namespace, class_name))
 
-
-    
         if expr.name == "intersection":
             return OWLObjectIntersectionOf([self.owlclass(arg) for arg in expr.arguments])
 
@@ -128,6 +170,19 @@ class Context:
         )
 
     def axiom (self, expr):
+        """
+            Evaluate Boolean ontology statements.
+        
+            Supported axioms:
+                subset
+                equivalence
+                class assertion
+                object property assertion
+        
+            Returns:
+                clingo.Number(1) if the ontology entails the statement,
+                clingo.Number(0) otherwise.
+        """
         if expr.name == "subset":
             c = self.owlclass(expr.arguments[0])
             d = self.owlclass(expr.arguments[1])
@@ -159,6 +214,13 @@ class Context:
                 raise ValueError("instance expects 1 or 2 subjects")
             
     def belongsto(self, expr):
+         """
+        Evaluate an OWL class expression and retrieve all ontology
+        individuals satisfying it.
+    
+        Returned individuals are converted into Clingo symbols
+        so that they can participate in ASP grounding.
+        """
             owl_expr = self.owlclass(expr)
             individuals = sync_reasoner.instances(owl_expr, direct=False)
             result = []
@@ -167,10 +229,8 @@ class Context:
                 result.append(clingo.Function(name.lower()))
             return result
    
-   
- 
-   
 class MyTranslator:
+#Translate OWL theory atoms into executable Clingo callbacks.
     clingowl_theory = """#theory clingowl {
         formula {
             <: : 0, binary, left;
@@ -200,6 +260,10 @@ class MyTranslator:
         return translation
 
     def translate_term(self, term):
+        """
+        Recursively translate the parsed AST into the internal
+        symbolic representation used by the ontology interface.
+        """
         
         operators = {
             "::" : "instance",
@@ -232,6 +296,11 @@ class MyTranslator:
         return term
     
     def translate_rule(self, sentence: cast.AST):
+        """
+        Translate every OWL theory atom occurring in a rule.
+        &owl{...}--> @axiom(...)
+        &owlquery{...}=X--> @belongsto(...)=X
+        """
         new_body = []
 
         if sentence.ast_type == cast.ASTType.Rule:
@@ -280,8 +349,12 @@ parse_string(
 )
 
 translated_program = t.get_translation()
-print("=====Translated program:====== ")
-print(translated_program)
+# Uncomment the following lines to inspect the translated ASP program.
+# This is useful for understanding how OWL theory atoms are rewritten
+# into executable Clingo callback functions.
+#
+# print("===== Translated Program =====")
+# print(translated_program)
 
 # Loading files and grounding
 ctl = clingo.Control()
