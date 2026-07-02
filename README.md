@@ -108,6 +108,23 @@ This script:
 - returns the results to Clingo;
 - prints the resulting answer set.
 
+### Expected Output
+
+The expected output of the Family example is available in
+
+```text
+examples/family/expected_output.txt
+```
+
+After running
+
+```bash
+cd examples/family
+python clingowl_family.py family.lp
+```
+
+the produced output should match the contents of `expected_output.txt`.
+
   ---
   ## Supported DL-style Operators
 
