@@ -49,7 +49,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 
-ONTOLOGY_FILE = BASE_DIR / "my_family.owl"
+ONTOLOGY_FILE = BASE_DIR / "ontologies"/ "my_family.owl"
 ASP_FILE = BASE_DIR / "family.lp"
 
 # =============================================================================
