@@ -1,0 +1,90 @@
+==================================================
+ClingOWL - Family Example
+Expected Output
+==================================================
+
+===== Translated Program =====
+
+#program base.
+
+parent(X) :- @belongsto(intersection(adult,union(father,mother))) = X.
+parent_mother(X) :- @belongsto(intersection(adult,mother)) = X.
+not_female(X) :- @belongsto(negation(female)) = X.
+male_children(X) :- @belongsto(exist(hasChild,male)) = X.
+has_child(W) :- @belongsto(forall(hasChild,negation(nothing))) = W.
+
+% subclass & equivalence
+
+check_father :-
+    @axiom(subset(father,person)) = 1.
+
+check_mother :-
+    @axiom(subset(mother,person)) = 1.
+
+check_parent :-
+    @axiom(equivalent(parent,
+        intersection(person,exist(hasChild,person)))) = 1.
+
+false :-
+    @axiom(subset(mother,father)) = 1.
+
+is_father :-
+    @axiom(instance(peter,father)) = 1.
+
+is_parent(susan,peter) :-
+    @axiom(instance((susan,peter),hasChild)) = 1.
+
+% inverse role, thing, nothing
+
+p(X) :-
+    @belongsto(exist(inverse(hasChild),thing)) = X.
+
+r(X) :-
+    @belongsto(forall(friend,nothing)) = X.
+
+only_peter(X) :-
+    @belongsto((peter,)) = X.
+
+chosen(X) :-
+    @belongsto((peter,mary,john)) = X.
+
+
+===== Reasoning Result =====
+
+parent(diego)
+parent(peter)
+parent(susan)
+
+parent_mother(susan)
+
+not_female(diego)
+not_female(john)
+not_female(peter)
+
+male_children(diego)
+male_children(susan)
+
+has_child(ann)
+has_child(john)
+has_child(diego)
+has_child(mary)
+has_child(peter)
+has_child(susan)
+
+check_father
+check_mother
+check_parent
+
+is_father
+is_parent(susan,peter)
+
+p(ann)
+p(mary)
+p(john)
+p(peter)
+
+only_peter(peter)
+
+chosen(mary)
+chosen(john)
+chosen(peter)
