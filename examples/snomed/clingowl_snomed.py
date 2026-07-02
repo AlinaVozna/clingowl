@@ -50,11 +50,13 @@ from clingox.ast import TheoryParser, theory_parser_from_definition
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
+ROOT_DIR = BASE_DIR.parent.parent
+
 ONTOLOGY_FILE = BASE_DIR / "ontologies" / "snomed.owl"
 ASP_FILE = BASE_DIR / "snomed.lp"
 
 onto = Ontology(
-    IRI.create(f"file://{ONTOLOGY_FILE.resolve()}"),
+    IRI.create(f"file://{ONTOLOGY_FILE.resolve().as_posix()}"),
     load=True,
 )
 
