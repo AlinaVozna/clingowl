@@ -17,22 +17,7 @@ These expressions are translated into OWL queries and evaluated through **OWLAPY
 
 ---
 
-## Repository Structure
 
-examples/
-- family/
-  - `clingowl_family.py`
-  - `family.lp`
-
-- snomed/
-  - `clingowl_snomed.py`
-  - `snomed.lp`
-
-ontologies/
-- `my_family.owl`
-- `snomed.owl`
-
----
 
 ## Requirements
 
