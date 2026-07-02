@@ -45,16 +45,23 @@ from clingox.ast import (
     theory_parser_from_definition,
 )
 
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+
+ONTOLOGY_FILE = BASE_DIR / "family.owl"
+ASP_FILE = BASE_DIR / "family.lp"
+
 # =============================================================================
 # Load ontology and initialize the Description Logic reasoner
 # =============================================================================
 onto = Ontology(
-    IRI.create("my_family.owl"),
+    IRI.create(f"file://{ONTOLOGY_FILE.resolve()}"),
     load=True
 )
 
 namespace = "http://example.com/my_family#"
-sync_reasoner = SyncReasoner(ontology=r"clingowl\ontology\my_family.owl", reasoner="Pellet")
+sync_reasoner = SyncReasoner(ontology=str(ONTOLOGY_FILE.resolve()), reasoner="Pellet")
 
 loc = Location(
     Position("", 0, 0),
@@ -338,7 +345,7 @@ class MyTranslator:
         else:
             self.program.append(sentence)
 
-with open(r"theory_ex.lp", "r") as f:
+with open(ASP_FILE, "r") as f:
     program = f.read()
 
 t = MyTranslator()
