@@ -72,7 +72,7 @@ cd examples/family
 Run the ClingOWL family example:
 
 ```bash
-python clingowl_family.py family.lp
+python clingowl_family.py 
 ```
 
 
