@@ -47,7 +47,8 @@ from clingox.ast import (
 
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent      # examples/family
+ROOT_DIR = BASE_DIR.parent.parent               # clingowl
 
 ONTOLOGY_FILE = BASE_DIR / "ontologies"/ "my_family.owl"
 ASP_FILE = BASE_DIR / "family.lp"
@@ -56,7 +57,7 @@ ASP_FILE = BASE_DIR / "family.lp"
 # Load ontology and initialize the Description Logic reasoner
 # =============================================================================
 onto = Ontology(
-    IRI.create(f"file://{ONTOLOGY_FILE.resolve()}"),
+    IRI.create(f"file://{ONTOLOGY_FILE.resolve().as_posix()}"),
     load=True
 )
 
