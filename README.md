@@ -56,14 +56,6 @@ Inside the environment, install the dependencies required by this repository:
 pip install clingo==5.8.0 clingox==1.2.1 owlready2==0.50 jpype1==1.7.0 rdflib==7.6.0
 ```
 ---
-### Adjust Ontology Paths
-The example scripts currently contain absolute local paths.
-Before running the examples, update the ontology paths in: 
-``` bash
-examples/family/clingowl_family.py
-examples/snomed/clingowl_snomed.py
-```
----
 ### Run the Family Example
 Before running the example, make sure you are inside the OWLAPY environment:
 
