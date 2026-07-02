@@ -69,4 +69,64 @@ pip install -e '.[dev]'
 Inside the environment, install the dependencies required by this repository:
 ``` bash
 pip install clingo==5.8.0 clingox==1.2.1 owlready2==0.50 jpype1==1.7.0 rdflib==7.6.0
-``` 
+```
+---
+### Adjust Ontology Paths
+The example scripts currently contain absolute local paths.
+Before running the examples, update the ontology paths in: 
+``` bash
+examples/family/clingowl_family.py
+examples/snomed/clingowl_snomed.py
+```
+---
+### Run the Family Example
+Before running the example, make sure you are inside the OWLAPY environment:
+
+```bash
+conda activate temp_owlapy
+```
+
+Then move to the family example directory:
+
+```bash
+cd examples/family
+```
+
+Run the ClingOWL family example:
+
+```bash
+python clingowl_family.py family.lp
+```
+
+
+This script:
+
+- loads the family ontology;
+- parses the ASP file `family.lp`;
+- translates theory atoms such as `&owl{...}` and `&owlquery{...} = X`;
+- evaluates the corresponding OWL queries through OWLAPY and the configured reasoner;
+- returns the results to Clingo;
+- prints the resulting answer set.
+
+  ---
+  ## Supported DL-style Operators
+
+The current version of **ClingOWL** supports the following Description Logic (DL) operators and OWL axioms.
+
+| Operator | Description | DL Semantics | Example |
+|----------|-------------|--------------|---------|
+| `A <: B` | Subclass axiom | \(A \sqsubseteq B\) | `father <: person` |
+| `A = B` | Equivalent classes | \(A \equiv B\) | `parent = person & (hasChild ! person)` |
+| `(a)::C` | Class assertion | \(a : C\) | `(peter)::father` |
+| `(a,b)::R` | Object property assertion | \(R(a,b)\) | `(susan,peter)::hasChild` |
+| `C & D` | Class intersection | \(C \sqcap D\) | `adult & father` |
+| `C \| D` | Class union | \(C \sqcup D\) | `father \| mother` |
+| `~C` | Class complement | \(\neg C\) | `~female` |
+| `R ! C` | Existential restriction | \(\exists R.C\) | `hasChild ! male` |
+| `R ? C` | Universal restriction | \(\forall R.C\) | `hasChild ? person` |
+| `-R` | Inverse object property | \(R^{-1}\) | `-hasParent` |
+| `thing` | Universal class | ⊤ | `thing` |
+| `nothing` | Empty class | ⊥ | `nothing` |
+| `{a}` | Nominal (singleton) | \(\{a\}\) | `{peter}` |
+| `{a,b,c}` | Enumeration of individuals | \(\{a,b,c\}\) | `{peter,mary,john}` |
+
