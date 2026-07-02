@@ -47,15 +47,20 @@ from owlapy.owl_ontology import Ontology
 from owlapy.owl_property import OWLObjectInverseOf, OWLObjectProperty
 from owlapy.owl_reasoner import SyncReasoner
 from clingox.ast import TheoryParser, theory_parser_from_definition
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+ONTOLOGY_FILE = BASE_DIR / "ontologies" / "snomed.owl"
+ASP_FILE = BASE_DIR / "snomed.lp"
 
 onto = Ontology(
-    IRI.create("file://C:/snomed.owl"),
+    IRI.create(f"file://{ONTOLOGY_FILE.resolve()}"),
     load=True,
 )
 
 namespace = "http://snomed.info/id/"
 sync_reasoner = SyncReasoner(
-    ontology=r"C:\snomed.owl",
+    ontology=str(ONTOLOGY_FILE.resolve()),
     reasoner="Pellet",
 )
 
@@ -115,7 +120,7 @@ def build_snomed_index(path: Path) -> dict[str, str]:
     return label_to_id
 
 # Build the label-to-ID index used to resolve ASP terms into SNOMED IRIs.
-entity_map = build_snomed_index(Path(r"C:\snomed.owl"))
+entity_map = build_snomed_index(ONTOLOGY_FILE)
 
 loc = Location(
     Position("", 0, 0),
@@ -396,7 +401,7 @@ class MyTranslator:
             self.program.append(sentence)
 
  #Read the ASP program containing SNOMED-oriented OWL theory atoms.
-with open(r"C:\snomed.lp", "r") as file_handle:
+with open(ASP_FILE, "r") as file_handle:
     program = file_handle.read()
 
 # Translate OWL theory atoms into Clingo callback functions.
