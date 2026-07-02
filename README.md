@@ -109,18 +109,18 @@ The current version of **ClingOWL** supports the following Description Logic (DL
 
 | Operator | Description | DL Semantics | Example |
 |----------|-------------|--------------|---------|
-| `A <: B` | Subclass axiom | \(A \sqsubseteq B\) | `father <: person` |
-| `A = B` | Equivalent classes | \(A \equiv B\) | `parent = person & (hasChild ! person)` |
-| `(a)::C` | Class assertion | \(a : C\) | `(peter)::father` |
-| `(a,b)::R` | Object property assertion | \(R(a,b)\) | `(susan,peter)::hasChild` |
-| `C & D` | Class intersection | \(C \sqcap D\) | `adult & father` |
-| `C \| D` | Class union | \(C \sqcup D\) | `father \| mother` |
-| `~C` | Class complement | \(\neg C\) | `~female` |
-| `R ! C` | Existential restriction | \(\exists R.C\) | `hasChild ! male` |
-| `R ? C` | Universal restriction | \(\forall R.C\) | `hasChild ? person` |
-| `-R` | Inverse object property | \(R^{-1}\) | `-hasParent` |
+| `A <: B` | Subclass axiom | A ⊑ B | `father <: person` |
+| `A = B` | Equivalent classes | A ≡ B | `parent = person & (hasChild ! person)` |
+| `(a)::C` | Class assertion | a : C | `(peter)::father` |
+| `(a,b)::R` | Object property assertion | R(a,b) | `(susan,peter)::hasChild` |
+| `C & D` | Class intersection | C ⊓ D | `adult & father` |
+| `C \| D` | Class union | C ⊔ D | `father \| mother` |
+| `~C` | Class complement | ¬C | `~female` |
+| `R ! C` | Existential restriction | ∃R.C | `hasChild ! male` |
+| `R ? C` | Universal restriction | ∀R.C | `hasChild ? person` |
+| `-R` | Inverse object property | R⁻¹ | `-hasParent` |
 | `thing` | Universal class | ⊤ | `thing` |
 | `nothing` | Empty class | ⊥ | `nothing` |
-| `{a}` | Nominal (singleton) | \(\{a\}\) | `{peter}` |
-| `{a,b,c}` | Enumeration of individuals | \(\{a,b,c\}\) | `{peter,mary,john}` |
+| `{a}` | Nominal (singleton) | {a} | `{peter}` |
+| `{a,b,c}` | Enumeration of individuals | {a,b,c} | `{peter,mary,john}` |
 
