@@ -50,7 +50,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent      # examples/family
 ROOT_DIR = BASE_DIR.parent.parent               # clingowl
 
-ONTOLOGY_FILE = BASE_DIR / "ontologies"/ "my_family.owl"
+ONTOLOGY_FILE = ROOT_DIR / "ontologies"/ "my_family.owl"
 ASP_FILE = BASE_DIR / "family.lp"
 
 # =============================================================================
