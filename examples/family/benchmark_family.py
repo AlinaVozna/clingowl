@@ -111,6 +111,9 @@ def main():
     sizes = [10, 50, 100, 500]
     repeats = 10
 
+    print("Warming up the JVM and parser...\n")
+    run_once(generate_program(10), translator_cls, context_cls)
+
     print(f"Running translation overhead benchmark with repeats={repeats}")
     results_by_size = {}
 
