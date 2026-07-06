@@ -29,12 +29,18 @@ theory_atoms,total_mean_ms,total_stdev_ms,failures
 500,337.6,27.3,0
 ```
 
-`ontologies/` contains frozen copies of the two benchmark ontologies. The
-family one is a normalized copy of `../../ontologies/my_family.owl` (names
-lowercased — DLVHEX constants must start lowercase — and the default
-namespace aligned with the entity IRIs; pure renaming, same DL semantics).
-The SNOMED CT allergy extract is used as-is. To add an ontology: drop the
-OWL file in `ontologies/`, add a block to `ONTOLOGIES` in `generate_hex.py`,
+`ontologies/` contains the two benchmark ontologies. The family one is a
+normalized copy of `../../ontologies/my_family.owl` (names lowercased —
+DLVHEX constants must start lowercase — and the default namespace aligned
+with the entity IRIs; pure renaming, same DL semantics). `snomed_allergy.owl`
+is the allergy module of the real SNOMED CT International release (1,424
+concepts with their full role-group definitions), generated locally with
+`../extract_snomed_fragment.py` — SNOMED content is licensed, so this file
+is gitignored rather than committed. Three case individuals are added there
+so retrieval queries have answers (SNOMED itself is TBox-only). Notably,
+`bench snomed` queries include an *inferred* superclass (609328004), so the
+answers require actual DL classification. To add an ontology: drop the OWL
+file in `ontologies/`, add a block to `ONTOLOGIES` in `generate_hex.py`,
 rebuild.
 
 ## Scope and known limitations
