@@ -7,13 +7,29 @@
 #
 # Note: ClingOWL's benchmark reports phase times (parsing/translation/
 # reasoning); DLVHEX does not expose comparable phases, so the combined table
-# uses total wall-clock time. Currently the ClingOWL benchmark runs on the
-# family ontology only, so the combined table is meaningful for `family`.
+# uses total wall-clock time.
 set -e
 
 ONTO="${1:-family}"
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/.." && pwd)
+
+# relative to the image's workdir, so it also works from Git Bash on Windows
+# (a leading / would trigger MSYS path conversion)
+if [ "$ONTO" = "snomed" ]; then
+    CW_CMD="python ../../benchmarks/clingowl/benchmark_snomed.py"
+    # SNOMED content is licensed, so the fragment is not in the repo:
+    # it must be generated once from a full SNOMED release (see
+    # benchmarks/extract_snomed_fragment.py).
+    if [ ! -f "$HERE/dlvhex/ontologies/snomed_allergy.owl" ]; then
+        echo "ERROR: benchmarks/dlvhex/ontologies/snomed_allergy.owl not found." >&2
+        echo "Generate it first with benchmarks/extract_snomed_fragment.py" >&2
+        echo "(needs a full SNOMED CT release, which is licensed)." >&2
+        exit 1
+    fi
+else
+    CW_CMD=""   # image default: the family benchmark
+fi
 
 echo "== Building images (cached after the first time) =="
 docker build -q -t dlvhex250 "$HERE/dlvhex"
@@ -21,11 +37,15 @@ docker build -q -f "$HERE/clingowl/Dockerfile" -t clingowl-bench "$REPO"
 
 echo
 echo "== ClingOWL ($ONTO) =="
-CW_OUT=$(docker run --rm clingowl-bench)
+CW_OUT=$(docker run --rm clingowl-bench $CW_CMD)
 echo "$CW_OUT" | grep -E '^(theory_atoms|[0-9]+,)'
 
 echo
 echo "== DLVHEX ($ONTO) =="
+if [ "$ONTO" = "snomed" ]; then
+    echo "(this takes ~10-15 min: DLVHEX re-classifies the ontology on every run," >&2
+    echo " which is precisely the finding; output appears when all runs finish)" >&2
+fi
 DL_OUT=$(docker run --rm dlvhex250 bench "$ONTO")
 echo "$DL_OUT" | grep -E '^(theory_atoms|[0-9]+,)'
 

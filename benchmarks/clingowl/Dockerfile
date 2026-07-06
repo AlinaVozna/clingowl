@@ -23,6 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ontologies/ ontologies/
 COPY examples/ examples/
+# SNOMED fragment benchmark (the ontology is shared with the DLVHEX side)
+COPY benchmarks/clingowl/benchmark_snomed.py benchmarks/clingowl/
+COPY benchmarks/dlvhex/ontologies/snomed_allergy.owl benchmarks/dlvhex/ontologies/
 
 # Warm import: starts the JVM and loads Pellet once at build time, so the
 # image fails fast if the reasoner stack is broken (and any lazy downloads
