@@ -22,11 +22,58 @@ Output is a CSV with the mean/stdev wall-clock time per `dlvhex2` run for
 programs of 10/50/100/500 DL atoms, e.g.:
 
 ```
+== Building images (cached after the first time) ==
+sha256:e60eae57d6a0c8566d458af0fd48b74bc8ebacdd9ff72291f82b90666cfea6a2
+sha256:2374c4544e77d66a23a1a6df2a4a40f591cb765c3c52db8d41785cdd5d27a52a
+
+== ClingOWL (snomed) ==
+theory_atoms,parsing_mean_ms,parsing_stdev_ms,translation_mean_ms,translation_stdev_ms,reasoning_mean_ms,reasoning_stdev_ms,total_mean_ms,total_stdev_ms
+10,0.363,0.450,5.100,0.523,24.859,3.068,31.268,3.837
+50,0.884,0.212,25.818,1.717,102.140,10.869,130.063,10.842
+100,1.803,0.386,56.261,16.598,188.952,15.955,248.691,19.373
+500,9.178,1.456,261.784,31.621,854.754,29.140,1131.073,45.039
+
+== DLVHEX (snomed) ==
+(this takes ~10-15 min: DLVHEX re-classifies the ontology on every run,
+ which is precisely the finding; output appears when all runs finish)
 theory_atoms,total_mean_ms,total_stdev_ms,failures
-10,85.8,6.3,0
-50,94.3,2.9,0
-100,110.9,6.9,0
-500,337.6,27.3,0
+10,15515.8,1111.8,0
+50,16509.1,991.5,0
+100,16307.1,1090.8,0
+500,16273.5,1101.6,0
+
+== Combined (total wall-clock time per run, ms) ==
+theory_atoms,clingowl_mean_ms,clingowl_stdev_ms,dlvhex_mean_ms,dlvhex_stdev_ms
+10,31.268,3.837,15515.8,1111.8
+50,130.063,10.842,16509.1,991.5
+100,248.691,19.373,16307.1,1090.8
+500,1131.073,45.039,16273.5,1101.6
+
+== ClingOWL (family) ==
+[main] INFO org.semanticweb.owlapi.rdf.rdfxml.parser.OWLRDFConsumer - Unparsed triple: http://www.w3.org/1999/02/22-rdf-syntax-ns#type -> http://example.com/my_family#Ann -> _:genid2147483675
+[main] INFO org.semanticweb.owlapi.rdf.rdfxml.parser.OWLRDFConsumer - Unparsed triple: http://www.w3.org/1999/02/22-rdf-syntax-ns#type -> http://example.com/my_family#Susan -> _:genid2147483674
+theory_atoms,parsing_mean_ms,parsing_stdev_ms,translation_mean_ms,translation_stdev_ms,reasoning_mean_ms,reasoning_stdev_ms,total_mean_ms,total_stdev_ms
+10,0.256,0.063,6.566,1.032,26.648,2.878,34.323,3.038
+50,0.839,0.073,30.386,2.695,107.181,20.464,139.654,21.360
+100,1.625,0.119,72.056,35.956,192.872,26.607,268.502,44.147
+500,9.604,2.995,331.536,30.151,896.165,55.280,1243.463,77.655
+
+== DLVHEX (family) ==
+theory_atoms,total_mean_ms,total_stdev_ms,failures
+10,194.6,62.8,0
+50,172.4,13.0,0
+100,212.4,17.5,0
+500,487.3,47.1,0
+
+== Combined (total wall-clock time per run, ms) ==
+theory_atoms,clingowl_mean_ms,clingowl_stdev_ms,dlvhex_mean_ms,dlvhex_stdev_ms
+10,34.323,3.038,194.6,62.8
+50,139.654,21.360,172.4,13.0
+100,268.502,44.147,212.4,17.5
+500,1243.463,77.655,487.3,47.1
+
+
+
 ```
 
 `ontologies/` contains the two benchmark ontologies. The family one is a
