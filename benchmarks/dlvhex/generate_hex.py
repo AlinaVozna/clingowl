@@ -25,16 +25,20 @@ ONTOLOGIES = {
         "inst":    [("father", "peter"), ("mother", "mary"), ("person", "diego")],
         "pairs":   [("hasChild", "susan", "peter")],
     },
-    # SNOMED uses numeric SCTIDs: 105590001 Substance, 372687004 Amoxicillin,
-    # 138875005 root concept, 246075003 Causative agent.
+    # Allergy module extracted from the full SNOMED CT release (see
+    # ../extract_snomed_fragment.py). SCTIDs: 420134006 = Propensity to
+    # adverse reaction (module root), 609328004 = Allergic disposition
+    # (an INFERRED superclass: answering requires DL classification over
+    # SNOMED's role-group definitions), 91936005 = Allergy to penicillin.
+    # case1..case3 are the synthetic individuals added by the extractor.
     "snomed": {
-        "file":    "snomed.owl",
+        "file":    "snomed_allergy.owl",
         "ns":      "http://snomed.info/id/",
-        "classes": ["105590001", "372687004", "-105590001", "138875005"],
-        "roles":   ["246075003"],
-        "inst":    [("105590001", "amoxicillin"),
-                    ("105590001", "ibuprofen"),
-                    ("138875005", "paracetamol")],
+        "classes": ["420134006", "609328004", "-420134006", "91936005"],
+        "roles":   [],
+        "inst":    [("420134006", "case3"),
+                    ("609328004", "case1"),
+                    ("91936005", "case1")],
         "pairs":   [],
     },
 }
