@@ -50,7 +50,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent      # examples/family
 ROOT_DIR = BASE_DIR.parent.parent               # clingowl
 
-ONTOLOGY_FILE = BASE_DIR / "ontologies"/ "my_family.owl"
+ONTOLOGY_FILE = ROOT_DIR / "ontologies"/ "my_family.owl"
 ASP_FILE = BASE_DIR / "family.lp"
 
 # =============================================================================
@@ -222,20 +222,20 @@ class Context:
                 raise ValueError("instance expects 1 or 2 subjects")
             
     def belongsto(self, expr):
-         """
+        """
         Evaluate an OWL class expression and retrieve all ontology
         individuals satisfying it.
     
         Returned individuals are converted into Clingo symbols
         so that they can participate in ASP grounding.
         """
-            owl_expr = self.owlclass(expr)
-            individuals = sync_reasoner.instances(owl_expr, direct=False)
-            result = []
-            for ind in individuals:
-                name = ind.iri.as_str().split("#")[-1]
-                result.append(clingo.Function(name.lower()))
-            return result
+        owl_expr = self.owlclass(expr)
+        individuals = sync_reasoner.instances(owl_expr, direct=False)
+        result = []
+        for ind in individuals:
+            name = ind.iri.as_str().split("#")[-1]
+            result.append(clingo.Function(name.lower()))
+        return result
    
 class MyTranslator:
 #Translate OWL theory atoms into executable Clingo callbacks.

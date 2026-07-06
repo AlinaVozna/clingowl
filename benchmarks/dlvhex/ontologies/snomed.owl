@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://snomed.info/id/"
+     xml:base="http://snomed.info/id/"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+
+    <owl:Ontology rdf:about="http://snomed.info/sct/test-mini-allergy"/>
+
+    <owl:Class rdf:about="http://snomed.info/id/138875005">
+        <rdfs:label>SNOMED CT Concept</rdfs:label>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://snomed.info/id/404684003">
+        <rdfs:label>Clinical finding</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://snomed.info/id/138875005"/>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://snomed.info/id/105590001">
+        <rdfs:label>Substance</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://snomed.info/id/138875005"/>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://snomed.info/id/416093006">
+        <rdfs:label>Allergic reaction to drug</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://snomed.info/id/404684003"/>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://snomed.info/id/372687004">
+        <rdfs:label>Amoxicillin</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://snomed.info/id/105590001"/>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://snomed.info/id/387207008">
+        <rdfs:label>Ibuprofen</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://snomed.info/id/105590001"/>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://snomed.info/id/387517004">
+        <rdfs:label>Paracetamol</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://snomed.info/id/105590001"/>
+    </owl:Class>
+
+    <owl:ObjectProperty rdf:about="http://snomed.info/id/246075003">
+        <rdfs:label>Causative agent</rdfs:label>
+    </owl:ObjectProperty>
+
+    <owl:Class rdf:about="http://snomed.info/id/91936005">
+        <rdfs:label>Allergy to penicillin</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://snomed.info/id/416093006"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://snomed.info/id/246075003"/>
+                <owl:someValuesFrom rdf:resource="http://snomed.info/id/372687004"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://snomed.info/id/294954008">
+        <rdfs:label>Allergy to non-steroidal anti-inflammatory agent</rdfs:label>
+        <rdfs:subClassOf rdf:resource="http://snomed.info/id/416093006"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://snomed.info/id/246075003"/>
+                <owl:someValuesFrom rdf:resource="http://snomed.info/id/387207008"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+
+    <owl:NamedIndividual rdf:about="http://snomed.info/id/amoxicillin">
+        <rdf:type rdf:resource="http://snomed.info/id/372687004"/>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://snomed.info/id/ibuprofen">
+        <rdf:type rdf:resource="http://snomed.info/id/387207008"/>
+    </owl:NamedIndividual>
+
+    <owl:NamedIndividual rdf:about="http://snomed.info/id/paracetamol">
+        <rdf:type rdf:resource="http://snomed.info/id/387517004"/>
+    </owl:NamedIndividual>
+
+</rdf:RDF>
