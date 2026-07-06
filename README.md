@@ -124,3 +124,16 @@ The current version of **ClingOWL** supports the following Description Logic (DL
 | `{a}` | Nominal (singleton) | {a} | `{peter}` |
 | `{a,b,c}` | Enumeration of individuals | {a,b,c} | `{peter,mary,john}` |
 
+
+---
+
+## Benchmarks
+
+The `benchmarks/` folder contains a containerized comparison against DLVHEX
+(engine + DL-Plugin + Racer reasoner), on the family ontology and on a real
+SNOMED CT allergy fragment. See `benchmarks/README.md` for details.
+
+```bash
+sh benchmarks/compare.sh family
+sh benchmarks/compare.sh snomed
+```

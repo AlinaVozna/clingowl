@@ -40,3 +40,7 @@ Thumbs.db
 # Docker 
 *.log
 docker-data/
+# SNOMED CT content is licensed (free for member countries, but not
+# redistributable in a public repo); generate the benchmark fragment locally
+# with benchmarks/extract_snomed_fragment.py from a full SNOMED release.
+benchmarks/dlvhex/ontologies/snomed_allergy.owl
