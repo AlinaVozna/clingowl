@@ -1,19 +1,53 @@
 ==================================================
-ClingOWL - Family Example
+ClingOWL v0.2 - Family Example with Assertions
 Expected Output
 ==================================================
+
+Input program: family_withassertion.lp
+
+Note: output is organized for readability.
+Atom order and the temporary ontology path may vary.
+
+===== Applied Ontology Assertions =====
+
+instance(john,father)
+instance((john,ann),hasChild)
+
+Ontology used by the reasoner: <temporary_ontology_file.owl>
+
 
 ===== Translated Program =====
 
 #program base.
 
-parent(X) :- @belongsto(intersection(adult,union(father,mother))) = X.
-parent_mother(X) :- @belongsto(intersection(adult,mother)) = X.
-not_female(X) :- @belongsto(negation(female)) = X.
-male_children(X) :- @belongsto(exist(hasChild,male)) = X.
-has_child(W) :- @belongsto(forall(hasChild,negation(nothing))) = W.
+% Checks for the newly added assertions
 
-% subclass & equivalence
+assertion_applied :-
+    @axiom(instance(john,father)) = 1.
+
+john_has_child_ann :-
+    @axiom(instance((john,ann),hasChild)) = 1.
+
+
+% Class expression queries
+
+parent(X) :-
+    @belongsto(intersection(adult,union(father,mother))) = X.
+
+parent_mother(X) :-
+    @belongsto(intersection(adult,mother)) = X.
+
+not_female(X) :-
+    @belongsto(negation(female)) = X.
+
+male_children(X) :-
+    @belongsto(exist(hasChild,male)) = X.
+
+has_child(W) :-
+    @belongsto(forall(hasChild,negation(nothing))) = W.
+
+
+% Subclass and equivalence checks
 
 check_father :-
     @axiom(subset(father,person)) = 1.
@@ -28,19 +62,26 @@ check_parent :-
 false :-
     @axiom(subset(mother,father)) = 1.
 
+
+% Existing class and object property assertion checks
+
 is_father :-
     @axiom(instance(peter,father)) = 1.
 
 is_parent(susan,peter) :-
     @axiom(instance((susan,peter),hasChild)) = 1.
 
-% inverse role, thing, nothing
+
+% Inverse role and universal restriction
 
 p(X) :-
     @belongsto(exist(inverse(hasChild),thing)) = X.
 
 r(X) :-
     @belongsto(forall(friend,nothing)) = X.
+
+
+% Nominals and enumeration of individuals
 
 only_peter(X) :-
     @belongsto((peter,)) = X.
@@ -51,7 +92,11 @@ chosen(X) :-
 
 ===== Reasoning Result =====
 
+assertion_applied
+john_has_child_ann
+
 parent(diego)
+parent(john)
 parent(peter)
 parent(susan)
 
@@ -65,8 +110,8 @@ male_children(diego)
 male_children(susan)
 
 has_child(ann)
-has_child(john)
 has_child(diego)
+has_child(john)
 has_child(mary)
 has_child(peter)
 has_child(susan)
@@ -79,12 +124,12 @@ is_father
 is_parent(susan,peter)
 
 p(ann)
-p(mary)
 p(john)
+p(mary)
 p(peter)
 
 only_peter(peter)
 
-chosen(mary)
 chosen(john)
+chosen(mary)
 chosen(peter)
