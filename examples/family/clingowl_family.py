@@ -13,15 +13,24 @@
 #
 # Supported theory atoms:
 #
+#   &owlassert{...}
+#       Add an OWL axiom to a temporary ontology copy. Assertions are written
+#       as facts in #program ontology and are applied before ASP reasoning.
+#
 #   &owl{...}
 #       Boolean ontology entailment checks.
 #
 #   &owlquery{...} = X
 #       Retrieve ontology individuals satisfying a DL expression.
+#
+# Program parts:
+#   #program ontology.  Contains &owlassert facts.
+#   #program base.      Contains ordinary ASP rules with &owl and &owlquery.
 # =============================================================================
 
 import clingo
 import sys
+import tempfile
 from owlapy.class_expression import OWLClass
 from owlapy.iri import IRI
 from owlapy.owl_property import OWLObjectProperty, OWLObjectInverseOf
@@ -29,6 +38,12 @@ from owlapy.class_expression import  OWLObjectIntersectionOf, OWLObjectSomeValue
 from owlapy.owl_ontology import Ontology
 from owlapy.owl_reasoner import  SyncReasoner
 from owlapy.owl_individual import OWLNamedIndividual
+from owlapy.owl_axiom import (
+    OWLClassAssertionAxiom,
+    OWLEquivalentClassesAxiom,
+    OWLObjectPropertyAssertionAxiom,
+    OWLSubClassOfAxiom,
+)
 from clingo import Function, Number
 from clingo.ast import ASTType, parse_string
 import clingo.ast as cast
@@ -47,22 +62,15 @@ from clingox.ast import (
 
 from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parent      # examples/family
-ROOT_DIR = BASE_DIR.parent.parent               # clingowl
+BASE_DIR = Path(__file__).resolve().parent
 
-ONTOLOGY_FILE = ROOT_DIR / "ontologies"/ "my_family.owl"
-ASP_FILE = BASE_DIR / "family.lp"
 
-# =============================================================================
-# Load ontology and initialize the Description Logic reasoner
-# =============================================================================
-onto = Ontology(
-    IRI.create(f"file://{ONTOLOGY_FILE.resolve().as_posix()}"),
-    load=True
-)
+ONTOLOGY_FILE = BASE_DIR.parent.parent / "ontologies" / "my_family.owl"
+
+DEFAULT_ASP_FILE = BASE_DIR / "family_withassertion.lp"
+ASP_FILE = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else DEFAULT_ASP_FILE
 
 namespace = "http://example.com/my_family#"
-sync_reasoner = SyncReasoner(ontology=str(ONTOLOGY_FILE.resolve()), reasoner="Pellet")
 
 loc = Location(
     Position("", 0, 0),
@@ -71,6 +79,7 @@ loc = Location(
 
 OWL_QUERY_ATOM = "owlquery"
 OWL_BOOL_ATOM = "owl"
+OWL_ASSERT_ATOM = "owlassert"
 
 def parse_theory(s: str) -> TheoryParser:
     parser = None
@@ -81,9 +90,9 @@ def parse_theory(s: str) -> TheoryParser:
     parse_string(s, extract)
     return parser
 
-class Context:
+class OntologyContext:
     """
-    Context object passed to Clingo during grounding.
+    Shared interface between the AST translators, the ontology, and Clingo.
 
     This class provides all callback functions that are invoked
     by Clingo whenever an OWL theory atom must be evaluated.
@@ -93,6 +102,21 @@ class Context:
         - Query the Description Logic reasoner.
         - Return Boolean values or ontology individuals to Clingo.
     """
+    def __init__(self, ontology_file: Path, ontology_namespace: str, reasoner_name: str = "Pellet"):
+        self.namespace = ontology_namespace
+        self.reasoner_name = reasoner_name
+        self.ontology_file = ontology_file
+        self.active_ontology_file = ontology_file
+        self.ontology = Ontology(
+            IRI.create(f"file://{ontology_file.resolve()}"),
+            load=True,
+        )
+        self.reasoner = SyncReasoner(str(self.active_ontology_file), reasoner=reasoner_name)
+
+    def refresh_reasoner(self):
+        """Recreate the reasoner after mutable ontology assertions are added."""
+        self.reasoner = SyncReasoner(str(self.active_ontology_file), reasoner=self.reasoner_name)
+
     def bool_symbol(self, value):
         return clingo.Number(1 if value else 0)
    
@@ -122,11 +146,11 @@ class Context:
         if prop.name == "inverse":
             return OWLObjectInverseOf(self.owlproperty(prop.arguments[0]))
         property_name = prop.name
-        return OWLObjectProperty(IRI(namespace, property_name))
+        return OWLObjectProperty(IRI(self.namespace, property_name))
    
     def owlindividual(self, ind):
         individual_name = self.upper_first(ind.name)
-        return OWLNamedIndividual(IRI(namespace, individual_name))
+        return OWLNamedIndividual(IRI(self.namespace, individual_name))
 
      
     def owlclass(self, expr): 
@@ -154,7 +178,7 @@ class Context:
                 return OWLThing
 
             class_name = self.upper_first(expr.name)
-            return OWLClass(IRI(namespace, class_name))
+            return OWLClass(IRI(self.namespace, class_name))
 
         if expr.name == "intersection":
             return OWLObjectIntersectionOf([self.owlclass(arg) for arg in expr.arguments])
@@ -177,6 +201,46 @@ class Context:
             self.owlclass(expr.arguments[1])
         )
 
+    def build_axiom(self, expr):
+        """Convert an internal symbolic expression into a mutable OWL axiom."""
+        if expr.name == "subset":
+            return OWLSubClassOfAxiom(
+                self.owlclass(expr.arguments[0]),
+                self.owlclass(expr.arguments[1]),
+            )
+
+        if expr.name == "equivalent":
+            return OWLEquivalentClassesAxiom([
+                self.owlclass(expr.arguments[0]),
+                self.owlclass(expr.arguments[1]),
+            ])
+
+        if expr.name == "instance":
+            subject, predicate = expr.arguments
+            if len(subject.arguments) == 0:
+                return OWLClassAssertionAxiom(
+                    self.owlindividual(subject),
+                    self.owlclass(predicate),
+                )
+            if len(subject.arguments) == 2:
+                return OWLObjectPropertyAssertionAxiom(
+                    self.owlindividual(subject.arguments[0]),
+                    self.owlproperty(predicate),
+                    self.owlindividual(subject.arguments[1]),
+                )
+            raise ValueError("instance assertions expect one individual or a pair of individuals")
+
+        raise ValueError(f"Unsupported ontology assertion: {expr.name}")
+
+    def add_axioms(self, axioms):
+        """Apply assertions before the ASP base program is grounded."""
+        if axioms:
+            self.ontology.add_axiom(axioms)
+            with tempfile.NamedTemporaryFile(suffix=".owl", delete=False) as ontology_copy:
+                self.active_ontology_file = Path(ontology_copy.name)
+            self.ontology.save(path=str(self.active_ontology_file), document_format="rdfxml")
+            self.refresh_reasoner()
+
     def axiom (self, expr):
         """
             Evaluate Boolean ontology statements.
@@ -194,12 +258,12 @@ class Context:
         if expr.name == "subset":
             c = self.owlclass(expr.arguments[0])
             d = self.owlclass(expr.arguments[1])
-            return self.bool_symbol(any(sc == d for sc in sync_reasoner.super_classes(c)))
+            return self.bool_symbol(any(sc == d for sc in self.reasoner.super_classes(c)))
 
         if expr.name == "equivalent":
             c = self.owlclass(expr.arguments[0])
             d = self.owlclass(expr.arguments[1])
-            return self.bool_symbol(any(eq == c for eq in sync_reasoner.equivalent_classes(d)))
+            return self.bool_symbol(any(eq == c for eq in self.reasoner.equivalent_classes(d)))
         
         #instances
         if expr.name == "instance":
@@ -209,36 +273,91 @@ class Context:
             if len(arg1.arguments) == 0:
                 o = self.owlindividual(arg1)
                 c = self.owlclass(arg2)
-                return self.bool_symbol(any(ind == o for ind in sync_reasoner.instances(c, direct=False)))
+                return self.bool_symbol(any(ind == o for ind in self.reasoner.instances(c, direct=False)))
 
             elif len(arg1.arguments) == 2:
                 o1 = self.owlindividual(arg1.arguments[0])
                 o2 = self.owlindividual(arg1.arguments[1])
                 r = self.owlproperty(arg2)
-                return self.bool_symbol(any(val == o2 for val in sync_reasoner.object_property_values(o1, r)))
+                return self.bool_symbol(any(val == o2 for val in self.reasoner.object_property_values(o1, r)))
             
             else:
 
                 raise ValueError("instance expects 1 or 2 subjects")
             
     def belongsto(self, expr):
-        """
-        Evaluate an OWL class expression and retrieve all ontology
-        individuals satisfying it.
+            owl_expr = self.owlclass(expr)
+            individuals = self.reasoner.instances(owl_expr, direct=False)
+            result = []
+            for ind in individuals:
+                name = ind.iri.as_str().split("#")[-1]
+                result.append(clingo.Function(name.lower()))
+            return result
     
-        Returned individuals are converted into Clingo symbols
-        so that they can participate in ASP grounding.
-        """
-        owl_expr = self.owlclass(expr)
-        individuals = sync_reasoner.instances(owl_expr, direct=False)
-        result = []
-        for ind in individuals:
-            name = ind.iri.as_str().split("#")[-1]
-            result.append(clingo.Function(name.lower()))
-        return result
-   
-class MyTranslator:
-#Translate OWL theory atoms into executable Clingo callbacks.
+class TheoryTermTranslator:
+    """Convert parsed Clingo theory terms into the symbolic OWL representation."""
+
+    def translate_term(self, term):
+        operators = {
+            "::": "instance",
+            "<:": "subset",
+            "=": "equivalent",
+            "&": "intersection",
+            "|": "union",
+            "~": "negation",
+            "?": "forall",
+            "!": "exist",
+            "-": "inverse",
+        }
+
+        if term.ast_type == cast.ASTType.SymbolicTerm:
+            return term.symbol
+
+        if term.ast_type == cast.ASTType.TheorySequence:
+            return Function("", [self.translate_term(arg) for arg in term.terms])
+
+        if term.ast_type == cast.ASTType.TheoryFunction:
+            args = [self.translate_term(arg) for arg in term.arguments]
+            return Function(operators.get(term.name, term.name), args)
+
+        raise ValueError(f"Unsupported theory term: {term.ast_type}")
+
+
+class OntologyAssertionHandler:
+    """Collect &owlassert atoms from #program ontology and apply them as OWL axioms."""
+
+    def __init__(self, theory_parser, term_translator, context):
+        self.theory_parser = theory_parser
+        self.term_translator = term_translator
+        self.context = context
+        self.assertions = []
+
+    def collect(self, sentence):
+        if sentence.ast_type != cast.ASTType.Rule:
+            return
+
+        if sentence.body:
+            raise ValueError("Ontology assertions must be facts without an ASP rule body")
+
+        # In a rule head, Clingo represents a theory atom directly rather
+        # than wrapping it in a Literal, unlike theory atoms in rule bodies.
+        head = sentence.head
+        if head.ast_type != cast.ASTType.TheoryAtom:
+            raise ValueError("#program ontology accepts only &owlassert{...} facts")
+
+        if head.term.name != OWL_ASSERT_ATOM:
+            raise ValueError("Use &owlassert{...} in #program ontology")
+
+        parsed_atom = self.theory_parser(head)
+        root = parsed_atom.elements[0].terms[0]
+        self.assertions.append(self.term_translator.translate_term(root))
+
+    def apply(self):
+        self.context.add_axioms([self.context.build_axiom(expr) for expr in self.assertions])
+
+
+class ReasoningTranslator:
+    """Translate &owl and &owlquery literals from #program base into callbacks."""
     clingowl_theory = """#theory clingowl {
         formula {
             <: : 0, binary, left;
@@ -254,7 +373,8 @@ class MyTranslator:
         term {
         - : 1, unary
         };
-
+        
+        &owlassert/0 : formula, head;
         &owl/0 : formula, body;
         &owlquery/0 : formula, {=}, term, body
     }."""
@@ -262,48 +382,13 @@ class MyTranslator:
     def __init__(self):
         self.program = []
         self.theory_parser = parse_theory(self.clingowl_theory)
+        self.term_translator = TheoryTermTranslator()
 
     def get_translation(self):
         translation = "\n".join([str(ast) for ast in self.program])
         return translation
 
-    def translate_term(self, term):
-        """
-        Recursively translate the parsed AST into the internal
-        symbolic representation used by the ontology interface.
-        """
-        
-        operators = {
-            "::" : "instance",
-            "<:" : "subset",
-            "=" : "equivalent",
-            "&" : "intersection",
-            "|" : "union",
-            "~" : "negation",
-            "?" : "forall",
-            "!" : "exist",
-            "-": "inverse",
-        }
-
-        
-        if term.ast_type == cast.ASTType.SymbolicTerm:
-            return term.symbol
-        
-        if term.ast_type == cast.ASTType.TheorySequence:
-            return Function ("" ,[self.translate_term(arg) for arg in term.terms])
-        
-            
-        if term.ast_type == cast.ASTType.TheoryFunction:
-            args = [self.translate_term(arg) for arg in term.arguments]
-
-            if term.name in operators:      
-                return Function (operators[term.name], args)
-
-            return Function(term.name, args)
-        
-        return term
-    
-    def translate_rule(self, sentence: cast.AST):
+    def translate_statement(self, sentence: cast.AST):
         """
         Translate every OWL theory atom occurring in a rule.
         &owl{...}--> @axiom(...)
@@ -317,7 +402,7 @@ class MyTranslator:
                     atom_name = literal.atom.term.name
                     parsed_theory_atom = self.theory_parser(literal.atom)
                     root = parsed_theory_atom.elements[0].terms[0]
-                    translated_expr = self.translate_term(root)
+                    translated_expr = self.term_translator.translate_term(root)
 
                     if atom_name == OWL_BOOL_ATOM:
                         expr_term= SymbolicTerm(loc, translated_expr)
@@ -346,40 +431,70 @@ class MyTranslator:
         else:
             self.program.append(sentence)
 
-with open(ASP_FILE, "r") as f:
-    program = f.read()
 
-t = MyTranslator()
+class ProgramDispatcher:
+    """Route ontology assertions and base-program rules to their dedicated handlers."""
 
-parse_string(
-    program,
-    lambda ast: t.translate_rule(ast)
-)
+    def __init__(self, assertion_handler, reasoning_translator):
+        self.assertion_handler = assertion_handler
+        self.reasoning_translator = reasoning_translator
+        self.current_program = "base"
 
-translated_program = t.get_translation()
-# Uncomment the following lines to inspect the translated ASP program.
-# This is useful for understanding how OWL theory atoms are rewritten
-# into executable Clingo callback functions.
-#
-# print("===== Translated Program =====")
-# print(translated_program)
+    def process(self, sentence):
+        if sentence.ast_type == cast.ASTType.Program:
+            self.current_program = sentence.name
+            if self.current_program != "ontology":
+                self.reasoning_translator.translate_statement(sentence)
+            return
 
-# Loading files and grounding
-ctl = clingo.Control()
-ctl.add("base", [], translated_program)
-ctl.ground([("base", [])], context=Context())
-ctl.configuration.solve.models="2" # This retrieves 2 models at most
-nummodels=0
+        if self.current_program == "ontology":
+            self.assertion_handler.collect(sentence)
+        else:
+            self.reasoning_translator.translate_statement(sentence)
 
-# Solving    
-atoms=[]
-size=0
-print("===== Reasoning =====")
-with ctl.solve(yield_=True) as handle:
-  for model in handle:
-      if nummodels>0: print("Warning: more than 1 model"); break
-      for atom in model.symbols(atoms=True):
-          print(atom,end=" ")
-      print()
-      nummodels=1 
-if nummodels==0: print("UNSATISFIABLE")
+def main():
+    with open(ASP_FILE, "r") as file:
+        program = file.read()
+
+    context = OntologyContext(ONTOLOGY_FILE, namespace)
+    reasoning_translator = ReasoningTranslator()
+    assertion_handler = OntologyAssertionHandler(
+        reasoning_translator.theory_parser,
+        reasoning_translator.term_translator,
+        context,
+    )
+    dispatcher = ProgramDispatcher(assertion_handler, reasoning_translator)
+
+    parse_string(program, dispatcher.process)
+
+    # Assertions are applied before the base ASP program is grounded.
+    assertion_handler.apply()
+    print("===== Applied ontology assertions =====")
+    for assertion in assertion_handler.assertions:
+        print(assertion)
+    print("Ontology used by the reasoner:", context.active_ontology_file)
+    translated_program = reasoning_translator.get_translation()
+    print("===== Translated Program =====")
+    print(translated_program)
+
+    ctl = clingo.Control()
+    ctl.add("base", [], translated_program)
+    ctl.ground([("base", [])], context=context)
+    ctl.configuration.solve.models = "2"
+    num_models = 0
+
+    print("===== Reasoning =====")
+    with ctl.solve(yield_=True) as handle:
+        for model in handle:
+            if num_models > 0:
+                print("Warning: more than 1 model")
+                break
+            print(*model.symbols(atoms=True))
+            num_models = 1
+
+    if num_models == 0:
+        print("UNSATISFIABLE")
+
+
+if __name__ == "__main__":
+    main()
