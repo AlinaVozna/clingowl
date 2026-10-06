@@ -1,4 +1,4 @@
-# ClingOWL
+# clingowl
 
 This repository contains the prototype accompanying our paper on the integration of **Answer Set Programming (ASP)** with **OWL reasoning**.
 
@@ -100,7 +100,7 @@ If you used the Conda setup above:
 conda activate temp_owlapy
 ```
 
-From the root of this **ClingOWL repository**, move to the family example directory:
+From the root of this **clingowl repository**, move to the family example directory:
 
 ```bash
 cd examples/family
@@ -155,29 +155,10 @@ parent(X) :- &owlquery{ adult & (father | mother) } = X.
 
 The first section adds two axioms. The second section checks and queries the extended ontology.
 
-### Original Example without Assertions
+### Previous Version (v0.1)
 
-From the same directory, run:
+The original family example without assertions, including `family.lp` and its output reference, is available in [ClingOWL v0.1](https://github.com/AlinaVozna/clingowl/tree/v0.1/examples/family).
 
-```bash
-python clingowl_family.py family.lp
-```
-
-An alternative ASP input file can be supplied as the first command-line argument.
-
-### Output Reference
-
-The original family example output is documented in:
-
-```text
-examples/family/expected_output.txt
-```
-
-This file refers to `family.lp`, not to the new `family_withassertion.lp` example.
-
-It is a reference for the original results rather than an exact console-output snapshot for v0.2: the updated script prints additional assertion information, and output formatting or atom order may differ.
-
-For `family_withassertion.lp`, the program includes the checks `assertion_applied` and `john_has_child_ann` for the two added axioms.
 
 ---
 
